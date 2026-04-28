@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DillLabs/asynq/internal/base"
+	"github.com/DillLabs/asynq/internal/rdb"
+	h "github.com/DillLabs/asynq/internal/testutil"
 	"github.com/google/go-cmp/cmp"
-	"github.com/hibiken/asynq/internal/base"
-	"github.com/hibiken/asynq/internal/rdb"
-	h "github.com/hibiken/asynq/internal/testutil"
 )
 
 func TestAggregator(t *testing.T) {

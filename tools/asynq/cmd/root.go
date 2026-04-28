@@ -16,11 +16,11 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/DillLabs/asynq"
+	"github.com/DillLabs/asynq/internal/base"
+	"github.com/DillLabs/asynq/internal/rdb"
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/fatih/color"
-	"github.com/hibiken/asynq"
-	"github.com/hibiken/asynq/internal/base"
-	"github.com/hibiken/asynq/internal/rdb"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -62,7 +62,7 @@ var rootCmd = &cobra.Command{
 		$ asynq task list --queue=myqueue --state=archived`),
 	Annotations: map[string]string{
 		"help:feedback": heredoc.Doc(`
-			Open an issue at https://github.com/hibiken/asynq/issues/new/choose`),
+			Open an issue at https://github.com/DillLabs/asynq/issues/new/choose`),
 	},
 }
 
