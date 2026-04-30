@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hibiken/asynq/internal/base"
+	"github.com/DillLabs/asynq/internal/base"
 	"github.com/redis/go-redis/v9"
 )
 

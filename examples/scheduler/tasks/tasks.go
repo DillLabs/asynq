@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hibiken/asynq"
+	"github.com/DillLabs/asynq"
 )
 
 const TypeReportGenerate = "report:generate"
