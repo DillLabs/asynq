@@ -116,6 +116,11 @@ type Config struct {
 	// By default, TaskCheckInterval is set to 1 seconds.
 	TaskCheckInterval time.Duration
 
+	// LeaseDuration specifies how long a worker owns a task lease before it must be renewed.
+	//
+	// If unset or zero, default lease duration is used.
+	LeaseDuration time.Duration
+
 	// Function to calculate retry delay for a failed task.
 	//
 	// By default, it uses exponential backoff algorithm to calculate the delay.
@@ -215,6 +220,21 @@ type Config struct {
 	//
 	// If unset or zero, the interval is set to 5 seconds.
 	DelayedTaskCheckInterval time.Duration
+
+	// HeartbeatInterval specifies the interval between worker heartbeats and lease extensions.
+	//
+	// If unset or zero, the interval is set to 5 seconds.
+	HeartbeatInterval time.Duration
+
+	// RecovererInterval specifies the interval between lease-recovery scans.
+	//
+	// If unset or zero, the interval is set to 1 minute.
+	RecovererInterval time.Duration
+
+	// RecovererCutoff specifies how stale an expired lease must be before recoverer reclaims it.
+	//
+	// If unset or zero, the cutoff is set to 3 seconds.
+	RecovererCutoff time.Duration
 
 	// GroupGracePeriod specifies the amount of time the server will wait for an incoming task before aggregating
 	// the tasks in a group. If an incoming task is received within this period, the server will wait for another
@@ -419,6 +439,12 @@ const (
 
 	defaultDelayedTaskCheckInterval = 5 * time.Second
 
+	defaultServerHeartbeatInterval = 5 * time.Second
+
+	defaultServerRecovererInterval = 1 * time.Minute
+
+	defaultServerRecovererCutoff = 30 * time.Second
+
 	defaultGroupGracePeriod = 1 * time.Minute
 
 	defaultJanitorInterval = 8 * time.Second
@@ -504,6 +530,9 @@ func NewServerFromRedisClient(c redis.UniversalClient, cfg Config) *Server {
 	logger.SetLevel(toInternalLogLevel(loglevel))
 
 	rdb := rdb.NewRDB(c)
+	if cfg.LeaseDuration > 0 {
+		rdb.SetLeaseDuration(cfg.LeaseDuration)
+	}
 	starting := make(chan *workerInfo)
 	finished := make(chan *base.TaskMessage)
 	syncCh := make(chan *syncRequest)
@@ -515,10 +544,14 @@ func NewServerFromRedisClient(c redis.UniversalClient, cfg Config) *Server {
 		requestsCh: syncCh,
 		interval:   5 * time.Second,
 	})
+	heartbeatInterval := cfg.HeartbeatInterval
+	if heartbeatInterval == 0 {
+		heartbeatInterval = defaultServerHeartbeatInterval
+	}
 	heartbeater := newHeartbeater(heartbeaterParams{
 		logger:         logger,
 		broker:         rdb,
-		interval:       5 * time.Second,
+		interval:       heartbeatInterval,
 		concurrency:    n,
 		queues:         queues,
 		strictPriority: cfg.StrictPriority,
@@ -558,13 +591,22 @@ func NewServerFromRedisClient(c redis.UniversalClient, cfg Config) *Server {
 		starting:          starting,
 		finished:          finished,
 	})
+	recovererInterval := cfg.RecovererInterval
+	if recovererInterval == 0 {
+		recovererInterval = defaultServerRecovererInterval
+	}
+	recovererCutoff := cfg.RecovererCutoff
+	if recovererCutoff == 0 {
+		recovererCutoff = defaultServerRecovererCutoff
+	}
 	recoverer := newRecoverer(recovererParams{
 		logger:         logger,
 		broker:         rdb,
 		retryDelayFunc: delayFunc,
 		isFailureFunc:  isFailureFunc,
 		queues:         qnames,
-		interval:       1 * time.Minute,
+		interval:       recovererInterval,
+		cutoff:         recovererCutoff,
 	})
 	healthchecker := newHealthChecker(healthcheckerParams{
 		logger:          logger,

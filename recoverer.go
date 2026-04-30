@@ -19,6 +19,7 @@ type recoverer struct {
 	broker         base.Broker
 	retryDelayFunc RetryDelayFunc
 	isFailureFunc  func(error) bool
+	cutoff         time.Duration
 
 	// channel to communicate back to the long running "recoverer" goroutine.
 	done chan struct{}
@@ -35,6 +36,7 @@ type recovererParams struct {
 	broker         base.Broker
 	queues         []string
 	interval       time.Duration
+	cutoff         time.Duration
 	retryDelayFunc RetryDelayFunc
 	isFailureFunc  func(error) bool
 }
@@ -46,6 +48,7 @@ func newRecoverer(params recovererParams) *recoverer {
 		done:           make(chan struct{}),
 		queues:         params.queues,
 		interval:       params.interval,
+		cutoff:         params.cutoff,
 		retryDelayFunc: params.retryDelayFunc,
 		isFailureFunc:  params.isFailureFunc,
 	}
@@ -87,8 +90,8 @@ func (r *recoverer) recover() {
 }
 
 func (r *recoverer) recoverLeaseExpiredTasks() {
-	// Get all tasks which have expired 30 seconds ago or earlier to accommodate certain amount of clock skew.
-	cutoff := time.Now().Add(-30 * time.Second)
+	// Get all tasks which have expired at least "cutoff" ago to accommodate clock skew.
+	cutoff := time.Now().Add(-r.cutoff)
 	msgs, err := r.broker.ListLeaseExpired(cutoff, r.queues...)
 	if err != nil {
 		r.logger.Warnf("recoverer: could not list lease expired tasks: %v", err)
