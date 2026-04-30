@@ -1,4 +1,4 @@
-module github.com/hibiken/asynq
+module github.com/DillLabs/asynq
 
 go 1.24.0
 
@@ -19,4 +19,3 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
-replace github.com/hibiken/asynq => .

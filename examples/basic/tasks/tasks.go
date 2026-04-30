@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hibiken/asynq"
+	"github.com/DillLabs/asynq"
 )
 
 const (

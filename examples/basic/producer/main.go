@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hibiken/asynq"
-	"github.com/hibiken/asynq/examples/basic/tasks"
+	"github.com/DillLabs/asynq"
+	"github.com/DillLabs/asynq/examples/basic/tasks"
 )
 
 const redisAddr = "127.0.0.1:6379"

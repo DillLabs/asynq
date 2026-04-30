@@ -1,6 +1,6 @@
 # Basic Asynq Demo
 
-This demo shows a producer/worker setup using the `github.com/hibiken/asynq` package in this repository, including delayed tasks, queue priority, and timeout/retry behavior.
+This demo shows a producer/worker setup using the `github.com/DillLabs/asynq` package in this repository, including delayed tasks, queue priority, and timeout/retry behavior.
 
 ## Prerequisites
 
